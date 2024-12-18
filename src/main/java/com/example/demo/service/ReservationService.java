@@ -5,16 +5,19 @@ import com.example.demo.entity.Item;
 import com.example.demo.entity.RentalLog;
 import com.example.demo.entity.Reservation;
 import com.example.demo.entity.User;
+import com.example.demo.enums.ReservationStatus;
 import com.example.demo.exception.ReservationConflictException;
 import com.example.demo.repository.ItemRepository;
 import com.example.demo.repository.ReservationRepository;
+import com.example.demo.repository.ReservationRepositoryQuery;
 import com.example.demo.repository.UserRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -23,18 +26,22 @@ public class ReservationService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final RentalLogService rentalLogService;
+    private final ReservationRepositoryQuery reservationRepositoryQuery;
 
     public ReservationService(ReservationRepository reservationRepository,
                               ItemRepository itemRepository,
                               UserRepository userRepository,
-                              RentalLogService rentalLogService) {
+                              RentalLogService rentalLogService,
+        ReservationRepositoryQuery reservationRepositoryQuery) {
         this.reservationRepository = reservationRepository;
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.rentalLogService = rentalLogService;
+        this.reservationRepositoryQuery = reservationRepositoryQuery;
     }
 
     // TODO: 1. 트랜잭션 이해
+    @Transactional
     public void createReservation(Long itemId, Long userId, LocalDateTime startAt, LocalDateTime endAt) {
         // 쉽게 데이터를 생성하려면 아래 유효성검사 주석 처리
         List<Reservation> haveReservations = reservationRepository.findConflictingReservations(itemId, startAt, endAt);
@@ -44,7 +51,7 @@ public class ReservationService {
 
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new IllegalArgumentException("해당 ID에 맞는 값이 존재하지 않습니다."));
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("해당 ID에 맞는 값이 존재하지 않습니다."));
-        Reservation reservation = new Reservation(item, user, "PENDING", startAt, endAt);
+        Reservation reservation = new Reservation(item, user, ReservationStatus.PENDING, startAt, endAt);
         Reservation savedReservation = reservationRepository.save(reservation);
 
         RentalLog rentalLog = new RentalLog(savedReservation, "로그 메세지", "CREATE");
@@ -78,16 +85,7 @@ public class ReservationService {
     }
 
     public List<Reservation> searchReservations(Long userId, Long itemId) {
-
-        if (userId != null && itemId != null) {
-            return reservationRepository.findByUserIdAndItemId(userId, itemId);
-        } else if (userId != null) {
-            return reservationRepository.findByUserId(userId);
-        } else if (itemId != null) {
-            return reservationRepository.findByItemId(itemId);
-        } else {
-            return reservationRepository.findAll();
-        }
+        return reservationRepositoryQuery.searchReservation(userId,itemId);
     }
 
     private List<ReservationResponseDto> convertToDto(List<Reservation> reservations) {
@@ -104,26 +102,22 @@ public class ReservationService {
 
     // TODO: 7. 리팩토링
     @Transactional
-    public void updateReservationStatus(Long reservationId, String status) {
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 ID에 맞는 데이터가 존재하지 않습니다."));
+    public ResponseEntity<Void> updateReservationStatus(Long reservationId, String status) {
+        Reservation reservation = reservationRepository.findByIdOrThrow(reservationId);
 
-        if ("APPROVED".equals(status)) {
-            if (!"PENDING".equals(reservation.getStatus())) {
-                throw new IllegalArgumentException("PENDING 상태만 APPROVED로 변경 가능합니다.");
+        if(!ReservationStatus.PENDING.equals(reservation.getStatus())) {
+            if (status.equals(ReservationStatus.APPROVED.toString()) || status.equals(ReservationStatus.EXPIRED.toString())){
+                throw new IllegalArgumentException("PENDING 상태만 "+status+"로 변경 가능합니다.");
             }
-            reservation.updateStatus("APPROVED");
-        } else if ("CANCELED".equals(status)) {
-            if ("EXPIRED".equals(reservation.getStatus())) {
+        }
+
+        if ("CANCELED".equals(status)) {
+            if (ReservationStatus.EXPIRED.equals(reservation.getStatus())) {
                 throw new IllegalArgumentException("EXPIRED 상태인 예약은 취소할 수 없습니다.");
             }
-            reservation.updateStatus("CANCELED");
-        } else if ("EXPIRED".equals(status)) {
-            if (!"PENDING".equals(reservation.getStatus())) {
-                throw new IllegalArgumentException("PENDING 상태만 EXPIRED로 변경 가능합니다.");
-            }
-            reservation.updateStatus("EXPIRED");
-        } else {
+        }else {
             throw new IllegalArgumentException("올바르지 않은 상태: " + status);
         }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

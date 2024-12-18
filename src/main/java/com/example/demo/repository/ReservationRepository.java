@@ -13,6 +13,17 @@ import java.util.Optional;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
+    @Query("SELECT r FROM Reservation r " +
+        "LEFT JOIN FETCH r.user u "+
+        "LEFT JOIN FETCH r.item i")
+    List<Reservation>findAll();
+
+    default Reservation findByIdOrThrow(Long id) {
+        return findById(id).orElseThrow(
+            () -> new IllegalArgumentException("해당 ID에 맞는 데이터가 존재하지 않습니다.")
+        );
+    }
+
     List<Reservation> findByUserIdAndItemId(Long userId, Long itemId);
 
     List<Reservation> findByUserId(Long userId);
@@ -28,4 +39,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("startAt") LocalDateTime startAt,
             @Param("endAt") LocalDateTime endAt
     );
+
 }
