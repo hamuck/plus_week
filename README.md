@@ -61,8 +61,9 @@
 
 <details>
 <summary>ERD</summary>
+![스크린샷 2024-12-19 오후 2 53 50](https://github.com/user-attachments/assets/cf051265-8e3a-44c6-87cf-a8c982f8258c)
 
-![image](https://github.com/user-attachments/assets/4211cd40-fcf1-407f-ac41-f06a7ce39745)
+
 </details>
 
 
