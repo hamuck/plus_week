@@ -38,6 +38,7 @@ public class ReservationControllerTest {
 	@Test
 	@DisplayName("reservation 생성 확인")
 	void createReservationTest() throws Exception {
+		//given
 		Long itemId = 1L;
 		Long userId = 1L;
 		LocalDateTime startTime = LocalDateTime.of(2020, 1, 1, 1, 1);
@@ -47,10 +48,12 @@ public class ReservationControllerTest {
 			itemId, userId, startTime, endTime
 		);
 
+		//session 생성(로그인)
 		Authentication authentication = new Authentication(userId, Role.USER);
 
 		String requestBody = objectMapper.writeValueAsString(reservationRequestDto);
 
+		//생성 후 200 ok 확인
 		mockMvc.perform(post("/reservations")
 				.sessionAttr(GlobalConstants.USER_AUTH, authentication)
 				.contentType(MediaType.APPLICATION_JSON)
@@ -62,9 +65,11 @@ public class ReservationControllerTest {
 	@Test
 	@DisplayName("reservation 조회")
 	void getReservationTest() throws Exception {
+		//given
 		Long userId = 1L;
 		Authentication authentication = new Authentication(userId, Role.USER);
 
+		//조회 200 Ok 확인
 		mockMvc.perform(get("/reservations")
 			.sessionAttr(GlobalConstants.USER_AUTH,authentication))
 		.andExpect(status().isOk());
@@ -73,10 +78,12 @@ public class ReservationControllerTest {
 	@Test
 	@DisplayName("reservation 검색 조회")
 	void searchReservationTest() throws Exception {
+		//given
 		Long itemId = 1L;
 		Long userId = 1L;
 		Authentication authentication = new Authentication(userId, Role.USER);
 
+		//조회 후 200 ok 확인
 		mockMvc.perform(get("/reservations/search")
 			.sessionAttr(GlobalConstants.USER_AUTH,authentication)
 			.param("itemId", itemId.toString())
@@ -87,21 +94,22 @@ public class ReservationControllerTest {
 	@Test
 	@DisplayName("상태 변경")
 	void updateReservationTest() throws Exception {
-
+		//given
 		Long reservationId = 1L;
 		Long userId = 1L;
 		String status = "APPROVED";
 
-		Authentication authentication = new Authentication(userId, Role.USER); // 인증 정보 생성
+		Authentication authentication = new Authentication(userId, Role.USER);
 
 		given(reservationService.updateReservationStatus(reservationId, status))
-			.willReturn(ResponseEntity.ok().build()); // 예시: boolean 반환
+			.willReturn(ResponseEntity.ok().build());
 
-		mockMvc.perform(patch("/reservations/{reservationId}/update-status", reservationId) // 경로 변수 사용
-				.sessionAttr(GlobalConstants.USER_AUTH, authentication) // 세션에 인증 정보 포함
-				.contentType(MediaType.APPLICATION_JSON) // JSON 콘텐츠 타입 설정
-				.content("{\"status\":\"" + status + "\"}")) // 상태를 JSON 형태로 전달
-			.andExpect(status().isOk()); // 200 OK 응답을 기대
+		//patch 후 200 ok 확인
+		mockMvc.perform(patch("/reservations/{reservationId}/update-status", reservationId)
+				.sessionAttr(GlobalConstants.USER_AUTH, authentication)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"status\":\"" + status + "\"}"))
+			.andExpect(status().isOk());
 	}
 
 }
