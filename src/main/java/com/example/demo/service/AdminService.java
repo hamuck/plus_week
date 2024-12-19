@@ -15,6 +15,7 @@ public class AdminService {
     }
 
     // TODO: 4. find or save 예제 개선
+    //쿼리 사용으로 db접근 최소화(repository)
     @Transactional
     public void reportUsers(List<Long> userIds) {
         userRepository.updateStatusToBlocked(userIds);

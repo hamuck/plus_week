@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
 
+    //userIds로 받은 id에 해당하는 데이터를 blocked로 변경
     @Modifying
     @Query(
         "UPDATE User u SET u.status = 'BLOCKED' " +

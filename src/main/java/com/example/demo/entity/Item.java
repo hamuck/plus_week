@@ -9,6 +9,7 @@ import org.hibernate.annotations.DynamicInsert;
 @Getter
 @DynamicInsert
 // TODO: 6. Dynamic Insert
+//DynamicInsert를 사용해 null이 허용된 데이터는 기본값이 입력되도록 수정
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -20,6 +20,7 @@ public class ReservationRepositoryQuery {
 		this.jpaQueryFactory = jpaQueryFactory;
 	}
 
+	//QueryDSL 사용, userId와 itemId가 있거나 없을 시를 고려해 작성, left join 사용해 n+1 문제 방지
 	public List<Reservation> searchReservation(Long userId, Long itemId){
 		return jpaQueryFactory.selectFrom(reservation)
 				.leftJoin(reservation.user, user).fetchJoin()

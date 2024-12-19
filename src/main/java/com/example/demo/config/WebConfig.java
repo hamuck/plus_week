@@ -23,6 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
     private static final String[] AUTH_REQUIRED_PATH_PATTERNS = {"/users/logout", "/admins/*",
         "/items/*"};
     private static final String[] USER_ROLE_REQUIRED_PATH_PATTERNS = {"/reservations/*"};
+    //admin으로 시작하는 url에 관한 인가 처리
     private static final String[] ADMIN_ROLE_REQUIRED_PATH_PATTERNS = {"/admins/*"};
 
     private final AuthInterceptor authInterceptor;
@@ -35,6 +36,7 @@ public class WebConfig implements WebMvcConfigurer {
             .addPathPatterns(AUTH_REQUIRED_PATH_PATTERNS)
             .order(Ordered.HIGHEST_PRECEDENCE);
 
+        //admin 권한 인터셉터 우선순위 설정
         registry.addInterceptor(adminRoleInterceptor)
             .addPathPatterns(ADMIN_ROLE_REQUIRED_PATH_PATTERNS)
             .order(Ordered.HIGHEST_PRECEDENCE + 1);
@@ -62,6 +64,7 @@ public class WebConfig implements WebMvcConfigurer {
         return filterRegistrationBean;
     }
 
+    //admin 필터 설정
     @Bean
     public FilterRegistrationBean adminRoleFilter() {
         FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();

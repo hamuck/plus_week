@@ -13,6 +13,7 @@ import java.util.Optional;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
+    //쿼리 사용으로 n+1 문제 해결
     @Query("SELECT r FROM Reservation r " +
         "LEFT JOIN FETCH r.user u "+
         "LEFT JOIN FETCH r.item i")

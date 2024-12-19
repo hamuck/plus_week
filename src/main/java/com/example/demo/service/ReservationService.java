@@ -41,6 +41,7 @@ public class ReservationService {
     }
 
     // TODO: 1. 트랜잭션 이해
+    //트랜잭션 어노테이션 추가
     @Transactional
     public void createReservation(Long itemId, Long userId, LocalDateTime startAt, LocalDateTime endAt) {
         // 쉽게 데이터를 생성하려면 아래 유효성검사 주석 처리
@@ -59,6 +60,7 @@ public class ReservationService {
     }
 
     // TODO: 3. N+1 문제
+    //left join 쿼리 사용으로 해결(repository)
     public List<ReservationResponseDto> getReservations() {
         List<Reservation> reservations = reservationRepository.findAll();
 
@@ -77,6 +79,7 @@ public class ReservationService {
     }
 
     // TODO: 5. QueryDSL 검색 개선
+    //QueryDSL 사용으로 동적 쿼리 생성
     public List<ReservationResponseDto> searchAndConvertReservations(Long userId, Long itemId) {
 
         List<Reservation> reservations = searchReservations(userId, itemId);
@@ -101,6 +104,13 @@ public class ReservationService {
     }
 
     // TODO: 7. 리팩토링
+    /*
+    * 리팩토링 진행
+    * 1. if문 구조 개선
+    * 2. 컨트롤러 응답 타입 ResponseEntity<Void>로 변경
+    * 3. 중복 사용되는 findById를 repository에서 default로 구현해 예외처리 개선
+    * 4. 상태 값 enum으로 관리
+    */
     @Transactional
     public ResponseEntity<Void> updateReservationStatus(Long reservationId, String status) {
         Reservation reservation = reservationRepository.findByIdOrThrow(reservationId);
